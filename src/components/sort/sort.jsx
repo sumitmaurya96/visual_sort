@@ -4,12 +4,12 @@ import Strip from "./strip";
 class Sort extends Component {
   render() {
     return (
-      <div style={{ backgroundColor: "white", height: "500px" }}>
+      <div>
         <div
           style={{
             display: "flex",
-            backgroundColor: "white",
             alignItems: "flex-end",
+            height: "325px",
             margin: "0px auto",
             width: `${this.props.state.arr.length * 3}%`
           }}
@@ -34,6 +34,7 @@ class Sort extends Component {
                   backgroundColor: color
                 }}
                 key={index}
+                noOfStrips={this.props.state.arr.length}
               />
             );
           })}

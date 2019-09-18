@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import "./App.css";
 import "bootstrap/dist/css/bootstrap.css";
 import Sort from "./components/sort/sort";
 import Navbar from "./components/navbar/navbar";
@@ -14,45 +13,77 @@ class App extends Component {
     this.state = {
       arr: [...arr],
       index: 0,
-      ref: this
+      ref: this,
+      isInputValid: false,
+      isInput: false,
+      isSorting: false,
+      breakSort: false
     };
+    this.backupArray = [...arr];
   }
 
-  submitInput = () => {
+  validateInputOnChange = input => {
+    //Set Input in this.input
+    this.input = input;
+
+    //validation on any change in inputboxs Also set isInput for count of input
     const algorithms = new Algorithm();
-    const arr = algorithms.validateArray(this.input.value);
-    if (arr === false) alert("Please Enter Valid Input ");
-    else {
-      if (arr.length > 25) alert("Number Of elements must be 25 or less");
-      else this.setState({ arr });
+    const arr = algorithms.validateInput(this.input.value);
+    if (arr === false) {
+      this.setState({ isInputValid: false, isInput: true });
+    } else {
+      if (arr.length > 25)
+        this.setState({ isInputValid: false, isInput: true });
+      else {
+        this.arr = arr;
+        this.setState({ arr, isInputValid: true, isInput: true });
+        this.backupArray = [...arr];
+      }
     }
   };
 
   handleNavbarClick = name => {
     let arr = [...this.state.arr];
     const algorithm = new Algorithm();
-    if (name === "Bubble") algorithm.bubbleSort(arr, this);
-    else if (name === "Insertion") algorithm.insertionSort(arr, this);
-    else if (name === "Selection") algorithm.selectionSort(arr, this);
-    else if (name === "Quick") algorithm.quickSort(arr, this);
-    else if (name === "Merge") algorithm.mergeSort(arr, this);
-    else if (name === "Submit") this.submitInput();
+    if (name === "Bubble") {
+      algorithm.bubbleSort(arr, this);
+    } else if (name === "Insertion") {
+      algorithm.insertionSort(arr, this);
+    } else if (name === "Selection") {
+      algorithm.selectionSort(arr, this);
+    } else if (name === "Quick") {
+      algorithm.quickSort(arr, this);
+    } else if (name === "Merge") {
+      algorithm.mergeSort(arr, this);
+    } else if (name === "Submit") {
+      let arr = [...this.backupArray];
+      this.setState({ arr });
+    } else if (name === "Random") {
+      let arr = [];
+      for (let i = 0; i < 25; i++) arr[i] = Math.floor(Math.random() * 100 + 1);
+      this.setState({ arr });
+    }
   };
 
   render() {
     return (
       <React.Fragment>
         <Navbar
+          state={this.state}
           OnClick={this.handleNavbarClick}
           setInput={input => {
-            this.input = input;
+            this.validateInputOnChange(input);
           }}
         />
         <div
-          style={{ width: "100%", height: "195px" }}
+          style={{ width: "100%", height: "100px" }}
           className="bg-white"
         ></div>
         <Sort state={this.state} />
+        <div
+          style={{ width: "100%", height: "100px" }}
+          className="bg-white"
+        ></div>
         <Footer />
       </React.Fragment>
     );

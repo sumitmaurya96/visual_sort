@@ -21,7 +21,7 @@ class Algorithm {
     };
   })();
 
-  validateArray = val => {
+  validateInput = val => {
     let temp = "";
     let arr = [];
     let j = 0;
@@ -31,7 +31,8 @@ class Algorithm {
     else {
       for (let i = 0; i < val.length; i++) {
         if (val.charAt(i) !== " " && val.charAt(i) !== "\n") {
-          temp += val.charAt(i).toString();
+          if (isNaN(parseInt(val.charAt(i)))) return false;
+          else temp += val.charAt(i).toString();
         } else {
           if (temp === "") continue;
           temp = parseInt(temp);
@@ -43,7 +44,6 @@ class Algorithm {
         }
       }
     }
-    if (arr.length === 0) return false;
     return arr;
   };
 
