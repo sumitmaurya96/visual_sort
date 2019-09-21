@@ -1,4 +1,13 @@
+import { isUndefined } from "util";
+
 class Algorithm {
+  constructor() {
+    this.color = {
+      indexA: 0,
+      indexB: 0,
+      indexRangeOfSorted: []
+    };
+  }
   //Helper function to generate a delay
   delayed = (function() {
     let queue = [];
@@ -48,6 +57,14 @@ class Algorithm {
   };
 
   insertionSort = (array, ref) => {
+    let state = ref.getState();
+    if (state.loopControls.isSorting) {
+      state.loopControls = { isSorting: true, breakSort: true };
+      ref.setState({ loopControls: state.loopControls });
+    }
+    state.loopControls = { isSorting: true, breakSort: false };
+    ref.setState({ loopControls: state.loopControls });
+
     let arr = [...array];
     let i,
       key,
@@ -61,30 +78,60 @@ class Algorithm {
       j = i - 1;
       while (j >= 0 && arr[j] > key) {
         arr[j + 1] = arr[j];
-        operation[k++] = { i: j + 1, j: j };
+        operation[k++] = { i: j + 1, j: j, sorted: i };
         j = j - 1;
       }
       arr[j + 1] = key;
-      operation[k++] = { i: j + 1, key: key };
+      operation[k++] = { i: j + 1, key: key, sorted: i };
     }
+
+    operation[k] = { i: j + 1, key: "last", sorted: i };
 
     arr = [...array];
 
     for (i = 0; i < operation.length; i++) {
       this.delayed(
-        100,
+        state.speed,
         (i => {
           return () => {
-            if (undefined === operation[i].key) {
+            if (state.loopControls.breakSort) {
+              ref.setState({
+                loopControls: { isSorting: false, breakSort: false }
+              });
+              clearTimeout();
+              return;
+            }
+            if (isUndefined(operation[i].key)) {
               let temp = arr[operation[i].j];
               arr[operation[i].j] = arr[operation[i].i];
               arr[operation[i].i] = temp;
-              let index = operation[i].j;
-              ref.setState({ arr, index });
+              this.color.indexA = operation[i].i;
+              this.color.indexB = operation[i].j;
+              this.color.indexRangeOfSorted = {
+                range: 1,
+                from: 0,
+                to: operation[i].sorted
+              };
+              ref.setState({ arr, color: this.color });
+            } else if (operation[i].key === "last") {
+              this.color.indexRangeOfSorted = {
+                range: 0,
+                from: -1,
+                to: -1
+              };
+              this.color.indexA = -1;
+              this.color.indexB = -1;
+              ref.setState({ arr, color: this.color });
             } else {
               arr[operation[i].i] = operation[i].key;
-              let index = operation[i].j;
-              ref.setState({ index });
+              this.color.indexA = operation[i].i;
+              this.color.indexB = operation[i].j;
+              this.color.indexRangeOfSorted = {
+                range: 1,
+                from: 0,
+                to: operation[i].sorted
+              };
+              ref.setState({ arr, color: this.color });
             }
           };
         })(i)
@@ -93,6 +140,14 @@ class Algorithm {
   };
 
   quickSort = (array, ref) => {
+    let state = ref.getState();
+    if (state.loopControls.isSorting) {
+      state.loopControls = { isSorting: true, breakSort: true };
+      ref.setState({ loopControls: state.loopControls });
+    }
+    state.loopControls = { isSorting: true, breakSort: false };
+    ref.setState({ loopControls: state.loopControls });
+
     let arr = [...array];
     let k = 0,
       operation = [];
@@ -130,81 +185,42 @@ class Algorithm {
     arr = [...array];
     for (let i = 0; i < operation.length; i++) {
       this.delayed(
-        100,
+        state.speed,
         (i => {
           return () => {
+            if (state.loopControls.breakSort) {
+              ref.setState({
+                loopControls: { isSorting: false, breakSort: false }
+              });
+              clearTimeout();
+              return;
+            }
             let temp = arr[operation[i].j];
             arr[operation[i].j] = arr[operation[i].i];
             arr[operation[i].i] = temp;
-            let index = operation[i].j;
-            ref.setState({ arr, index });
+            this.color.indexA = operation[i].i;
+            this.color.indexB = operation[i].j;
+            this.color.indexRangeOfSorted = {
+              range: 1,
+              from: -1,
+              to: -1
+            };
+            ref.setState({ arr, color: this.color });
           };
         })(i)
       );
     }
   };
 
-  mergeSort = (arr, ref) => {
-    console.log(arr);
-    let operation = [],
-      t = 0;
-
-    const Merge = (arr, l, m, r) => {
-      let array = [...arr];
-      let i, j, k;
-      let n1 = m - l + 1;
-      let n2 = r - m;
-
-      let L = [],
-        R = [];
-
-      for (i = 0; i < n1; i++) L[i] = array[l + i];
-      for (j = 0; j < n2; j++) R[j] = array[m + 1 + j];
-
-      i = 0;
-      j = 0;
-      k = l;
-      while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) {
-          array[k] = L[i];
-          // operation[t++] = { i: k, value: arr[k] };
-          i++;
-        } else {
-          array[k] = R[j];
-          // operation[t++] = { i: k, value: arr[k] };
-          j++;
-        }
-        k++;
-      }
-
-      while (i < n1) {
-        array[k] = L[i];
-        //operation[t++] = { i: k, value: arr[k] };
-        i++;
-        k++;
-      }
-
-      while (j < n2) {
-        array[k] = R[j];
-        //operation[t++] = { i: k, value: arr[k] };
-        j++;
-        k++;
-      }
-    };
-
-    const mSort = (A, l, r) => {
-      if (l < r) {
-        let m = l + (r - l) / 2;
-        mSort(A, l, m);
-        mSort(A, m + 1, r);
-        Merge(A, l, m, r);
-      }
-    };
-    console.log(arr);
-    mSort(arr, 0, arr.length - 1);
-  };
-
   selectionSort = (array, ref) => {
+    let state = ref.getState();
+    if (state.loopControls.isSorting) {
+      state.loopControls = { isSorting: true, breakSort: true };
+      ref.setState({ loopControls: state.loopControls });
+    }
+    state.loopControls = { isSorting: true, breakSort: false };
+    ref.setState({ loopControls: state.loopControls });
+
     let arr = [...array];
     let n = arr.length;
     let i, j, min_idx;
@@ -216,31 +232,59 @@ class Algorithm {
       for (j = i + 1; j < n; j++) {
         if (arr[j] < arr[min_idx]) {
           min_idx = j;
-          operation[k++] = { i: i, j: min_idx, swap: false };
         }
+        operation[k++] = {
+          i: i,
+          j: j,
+          min_idx: min_idx,
+          swap: false,
+          sorted: i
+        };
       }
       let temp = arr[min_idx];
       arr[min_idx] = arr[i];
       arr[i] = temp;
-      operation[k++] = { i: i, j: min_idx, swap: true };
+      operation[k++] = { i: i, j: j, min_idx: min_idx, swap: true, sorted: i };
     }
+
+    operation[k++] = { i: i, j: j, min_idx: min_idx, swap: false, sorted: i };
+    operation[k++] = { i: -1, j: -1, min_idx: -1, swap: false, sorted: -1 };
 
     arr = [...array];
 
     for (i = 0; i < operation.length; i++) {
       this.delayed(
-        100,
+        state.speed,
         (i => {
           return () => {
-            if (operation[i].swap) {
-              let temp = arr[operation[i].j];
-              arr[operation[i].j] = arr[operation[i].i];
+            if (state.loopControls.breakSort) {
+              ref.setState({
+                loopControls: { isSorting: false, breakSort: false }
+              });
+              clearTimeout();
+              return;
+            }
+            if (operation[i].swap === true) {
+              let temp = arr[operation[i].min_idx];
+              arr[operation[i].min_idx] = arr[operation[i].i];
               arr[operation[i].i] = temp;
-              let index = operation[i].j;
-              ref.setState({ arr, index });
+              this.color.indexA = operation[i].min_idx;
+              this.color.indexB = operation[i].j;
+              this.color.indexRangeOfSorted = {
+                range: 1,
+                from: 0,
+                to: operation[i].sorted
+              };
+              ref.setState({ arr, color: this.color });
             } else {
-              let index = operation[i].j;
-              ref.setState({ index });
+              this.color.indexA = operation[i].min_idx;
+              this.color.indexB = operation[i].j;
+              this.color.indexRangeOfSorted = {
+                range: 1,
+                from: 0,
+                to: operation[i].sorted
+              };
+              ref.setState({ arr, color: this.color });
             }
           };
         })(i)
@@ -248,22 +292,83 @@ class Algorithm {
     }
   };
 
-  bubbleSort = (arr, ref) => {
-    let len = arr.length;
+  bubbleSort = (array, ref) => {
+    let state = ref.getState();
+    if (state.loopControls.isSorting) {
+      state.loopControls = { isSorting: true, breakSort: true };
+      ref.setState({ loopControls: state.loopControls });
+    }
+    state.loopControls = { isSorting: true, breakSort: false };
+    ref.setState({ loopControls: state.loopControls });
 
-    for (let i = 0; i < len - 1; i += 1) {
-      for (let j = 1; j < len - i; j += 1) {
-        // add function to the queue, shadowing i/j with an IIFE:
-        this.delayed(100, () => {
-          if (arr[j - 1] > arr[j]) {
-            let temp = arr[j - 1];
-            arr[j - 1] = arr[j];
-            arr[j] = temp;
-          }
-          let index = j;
-          ref.setState({ arr, index });
-        });
+    let arr = [...array],
+      k = 0;
+    let len = arr.length;
+    let operation = [];
+
+    let i, j;
+
+    for (i = 0; i < len - 1; i += 1) {
+      for (j = 0; j < len - i; j += 1) {
+        if (arr[j - 1] > arr[j]) {
+          let temp = arr[j - 1];
+          arr[j - 1] = arr[j];
+          arr[j] = temp;
+          operation[k++] = { sorted: i, i: j - 1, j: j, swap: true };
+        } else operation[k++] = { sorted: i, i: j - 1, j: j, swap: false };
       }
+    }
+
+    operation[k++] = { sorted: len, i: -1, j: -1, swap: false };
+    operation[k] = { sorted: len, i: -1, j: -1, swap: "last" };
+
+    arr = [...array];
+    for (let i = 0; i < operation.length; i++) {
+      this.delayed(
+        state.speed,
+        (i => {
+          return () => {
+            if (state.loopControls.breakSort) {
+              ref.setState({
+                loopControls: { isSorting: false, breakSort: false }
+              });
+              clearTimeout();
+              return;
+            }
+            if (operation[i].swap === true) {
+              let temp = arr[operation[i].j];
+              arr[operation[i].j] = arr[operation[i].i];
+              arr[operation[i].i] = temp;
+              this.color.indexA = operation[i].i;
+              this.color.indexB = operation[i].j;
+              this.color.indexRangeOfSorted = {
+                range: 1,
+                from: arr.length - operation[i].sorted,
+                to: arr.length
+              };
+              ref.setState({ arr, color: this.color });
+            } else if (operation[i].swap === false) {
+              this.color.indexRangeOfSorted = {
+                range: 1,
+                from: arr.length - operation[i].sorted,
+                to: arr.length
+              };
+              this.color.indexA = operation[i].i;
+              this.color.indexB = operation[i].j;
+              ref.setState({ arr, color: this.color });
+            } else {
+              this.color.indexRangeOfSorted = {
+                range: 0,
+                from: -1,
+                to: -1
+              };
+              this.color.indexA = -1;
+              this.color.indexB = -1;
+              ref.setState({ arr, color: this.color });
+            }
+          };
+        })(i)
+      );
     }
   };
 }

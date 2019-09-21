@@ -23,8 +23,18 @@ class Sort extends Component {
                 : 1000 / this.props.state.arr.length;
 
             let color = "#4B65BA";
-            if (index === this.props.state.index) color = "orange";
-
+            if (index === this.props.state.color.indexA) {
+              color = "green";
+            }
+            if (index === this.props.state.color.indexB) {
+              color = "green";
+            } else if (
+              this.props.state.color.indexRangeOfSorted.range > 0 &&
+              index <= this.props.state.color.indexRangeOfSorted.to &&
+              index >= this.props.state.color.indexRangeOfSorted.from
+            ) {
+              color = "red";
+            }
             return (
               <Strip
                 value={stripLength}

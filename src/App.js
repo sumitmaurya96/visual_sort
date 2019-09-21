@@ -12,15 +12,46 @@ class App extends Component {
     for (let i = 0; i < 25; i++) arr[i] = Math.floor(Math.random() * 100 + 1);
     this.state = {
       arr: [...arr],
-      index: 0,
+      color: {
+        indexA: -1,
+        indexB: -1,
+        indexRangeOfSorted: {
+          range: 0,
+          from: -1,
+          to: -1
+        }
+      },
+      speed: 1000,
       ref: this,
       isInputValid: false,
       isInput: false,
-      isSorting: false,
-      breakSort: false
+      loopControls: {
+        isSorting: false,
+        breakSort: false
+      }
     };
     this.backupArray = [...arr];
   }
+
+  setSpeed = event => {
+    let speed;
+    if (event.target.value === "medium") {
+      speed = 100;
+      this.setState({ speed });
+    }
+    if (event.target.value === "fast") {
+      speed = 10;
+      this.setState({ speed });
+    }
+    if (event.target.value === "slow") {
+      speed = 1000;
+      this.setState({ speed });
+    }
+  };
+
+  getState = () => {
+    return this.state;
+  };
 
   validateInputOnChange = input => {
     //Set Input in this.input
@@ -75,10 +106,51 @@ class App extends Component {
             this.validateInputOnChange(input);
           }}
         />
-        <div
-          style={{ width: "100%", height: "100px" }}
-          className="bg-white"
-        ></div>
+        <div style={{ width: "100%", height: "100px" }} className="bg-white">
+          <div
+            style={{
+              width: "220px",
+              margin: "0px auto"
+            }}
+          >
+            <span className="badge badge-primary m-2">
+              <input
+                type="radio"
+                name="speed"
+                value="slow"
+                onChange={event => {
+                  this.setSpeed(event);
+                }}
+              />
+              slow
+            </span>
+            <span className="badge badge-primary m-2">
+              <input
+                type="radio"
+                name="speed"
+                value="medium"
+                onChange={event => {
+                  this.setSpeed(event);
+                }}
+              />
+              medium
+            </span>
+            <span className="badge badge-primary m-2">
+              <input
+                type="radio"
+                name="speed"
+                value="fast"
+                onChange={event => {
+                  this.setSpeed(event);
+                }}
+              />
+              fast
+            </span>
+            <small className="form-text text-muted" style={{ margin: "5px" }}>
+              Note: Set speed before sorting only.
+            </small>
+          </div>
+        </div>
         <Sort state={this.state} />
         <div
           style={{ width: "100%", height: "100px" }}
